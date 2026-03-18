@@ -1,6 +1,14 @@
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 
 const app = express();
+
+const Book = require('./models/book');
+
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log('Connexion à MongoDB réussie !'))
+  .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 app.use(express.json());
 
@@ -12,36 +20,37 @@ app.use((req, res, next) => {
 });
 
 app.post('/api/books', (req, res, next) => {
-  console.log(req.body);
-  res.status(201).json({
-    message: 'Nouveau livre créé !'
+  delete req.body._id;
+  const book = new Book({
+    ...req.body
   });
+  book.save()
+    .then(() => res.status(201).json({ message: 'Nouveau livre enregistré !'}))
+    .catch(error => res.status(400).json({ error }));
+});
+
+app.put('/api/books/:id', (req, res, next) => {
+  Book.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
+    .then(() => res.status(200).json({ message: 'Modification réussie !'}))
+    .catch(error => res.status(400).json({ error }));
+});
+
+app.delete('/api/books/:id', (req, res, next) => {
+  Book.deleteOne({ _id: req.params.id })
+    .then(() => res.status(200).json({ message: 'Suppression réussie !'}))
+    .catch(error => res.status(400).json({ error }));
+});
+
+app.get('/api/books/:id', (req, res, next) => {
+  Book.findOne({ _id: req.params.id })
+    .then(book => res.status(200).json(book))
+    .catch(error => res.status(404).json({ error }));
 });
 
 app.get('/api/books', (req, res, next) => {
-  const books = [
-    {
-      id: "1",
-      userId: "clc4wj5lh3gyi0ak4eq4n8syr",
-      title: "Milwaukee Mission",
-      author: "Elder Cooper",
-      imageUrl: "https://via.placeholder.com/206x260",
-      year: 2021,
-      genre: "Policier",
-      averageRating: 3
-    },
-    {
-      id: "2",
-      userId: "clbxs3tag6jkr0biul4trzbrv",
-      title: "Book for Esther",
-      author: "Alabaster",
-      imageUrl: "https://via.placeholder.com/206x260",
-      year: 2022,
-      genre: "Paysage",
-      averageRating: 4.2
-    }
-  ];
-  res.status(200).json(books);
+  Book.find()
+    .then(books => res.status(200).json(books))
+    .catch(error => res.status(400).json({ error }));
 });
 
 module.exports = app;
