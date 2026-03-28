@@ -79,3 +79,40 @@ exports.getAllBooks = (req, res, next) => {
     .then(books => res.status(200).json(books))
     .catch(error => res.status(400).json({ error }));
 };
+
+exports.createRating = (req, res, next) => {
+    const ratingBook = {
+        userId: req.auth.userId,
+        grade: req.body.rating
+    };
+
+    Book.findOne({ _id: req.params.id })
+        .then((book) => {
+            if (!book) {
+                return res.status(404).json({ message: 'Livre non trouvé !' });
+            } else {
+                // Vérification si l'utilisateur a déjà noté ce livre
+                const alreadyRated = book.ratings.find(rating => rating.userId === req.auth.userId);
+
+                if (alreadyRated) {
+                    return res.status(400).json({ message: 'Vous avez déjà noté ce livre.' });
+                } else {
+                    // Ajout de la note
+                    book.ratings.push(ratingBook);
+
+                    // Sauvegarde du livre mis à jour
+                    return book.save()
+                        .then((updatedBook) => {
+                            // On renvoie le livre mis à jour comme attendu par le front
+                            res.status(200).json(updatedBook);
+                        })
+                        .catch((error) => {
+                            return res.status(400).json({ error });
+                        });
+                }
+            }
+        })
+        .catch((error) => {
+            return res.status(500).json({ error });
+        });
+};
