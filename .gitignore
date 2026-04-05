@@ -9,6 +9,9 @@
 # testing
 /coverage
 
+# Dossier d'images/uploads
+images/
+
 # production
 /build
 
