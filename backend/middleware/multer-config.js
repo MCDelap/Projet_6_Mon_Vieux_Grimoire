@@ -1,10 +1,10 @@
-const multer = require('multer');
+const multer = require("multer");
 
 const MIME_TYPES = {
-  'image/jpg': 'jpg',
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/webp': 'webp'
+  "image/jpg": "jpg",
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
 };
 
 // On utilise la mémoire vive (RAM) plutôt que le disque dur pour stocker temporairement l'image
@@ -15,8 +15,10 @@ const fileFilter = (req, file, callback) => {
   if (MIME_TYPES[file.mimetype]) {
     callback(null, true);
   } else {
-    callback(new Error('Format de fichier non supporté'), false);
+    callback(new Error("Format de fichier non supporté"), false);
   }
 };
 
-module.exports = multer({ storage: storage, fileFilter: fileFilter }).single('image');
+module.exports = multer({ storage: storage, fileFilter: fileFilter }).single(
+  "image",
+);
